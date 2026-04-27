@@ -1,0 +1,5 @@
+baumarten_blaetter/
+baumarten_blaetter_modell.pkl
+*.jpg
+__pycache__/
+.ipynb_checkpoints/
