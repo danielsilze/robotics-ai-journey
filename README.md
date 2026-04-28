@@ -50,15 +50,9 @@
 
 ### Tag 2 – Python & fast.ai (2026-04-28)
 
-**CS50P Aufgaben:**
-- [x] indoor.py — Text in Kleinbuchstaben
-- [x] playback.py — Leerzeichen durch ... ersetzen
-- [x] faces.py — Emoticons zu Emoji
-- [x] einstein.py — E=mc² Rechner
-- [x] bank.py — Begrüßungs-Checker
-- [x] extensions.py — Dateiendung → MIME-Type
-- [x] interpreter.py — Mathe-Interpreter
-- [x] coke.py — Münzautomat
+**CS50P — Introduction to Programming with Python:**
+- [x] Lektion 1 — Functions, Variables (indoor.py, playback.py, faces.py, einstein.py)
+- [x] Lektion 2 — Conditionals (bank.py, extensions.py, interpreter.py, coke.py)
 
 **fast.ai:**
 - [x] Lektion 1 — 'Is it a bird?' auf 16 Baumarten umgebaut (Blatterkennung Norddeutschland)
