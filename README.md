@@ -48,6 +48,29 @@
 - [ ] GitHub Account online einrichten
 - [ ] LinkedIn aktualisieren
 
+### Tag 2 – Python & fast.ai (2026-04-28)
+
+**CS50P Aufgaben:**
+- [x] indoor.py — Text in Kleinbuchstaben
+- [x] playback.py — Leerzeichen durch ... ersetzen
+- [x] faces.py — Emoticons zu Emoji
+- [x] einstein.py — E=mc² Rechner
+- [x] bank.py — Begrüßungs-Checker
+- [x] extensions.py — Dateiendung → MIME-Type
+- [x] interpreter.py — Mathe-Interpreter
+- [x] coke.py — Münzautomat
+
+**fast.ai:**
+- [x] Lektion 1 — 'Is it a bird?' auf 16 Baumarten umgebaut (Blatterkennung Norddeutschland)
+- [x] Fixes: GradScaler (PyTorch 2.2), MPS (macOS), CPU-Modus
+- [x] Notebook auf GitHub veröffentlicht
+- [x] Lektion 2 — fast.ai Kapitel 2 (02_production.ipynb) gestartet
+
+**Hugging Face:**
+- [x] Account erstellt
+- [x] Space 'minima' deployed mit Gradio (Cat or Dog App)
+- [x] model.pkl hochgeladen
+
 ---
 
 *Gestartet: April 2026 — Ziel: September 2026*
