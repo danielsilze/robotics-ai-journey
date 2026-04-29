@@ -70,6 +70,16 @@ Jeder Token bekommt eine feste Nummer:
 "hello world"  →  [101, 7592, 2088, 102]
 ```
 
+**Was sind [CLS] und [SEP]?**
+- `[CLS]` (Classification Token) = wird am Anfang jedes Textes eingefügt. Das Modell packt die "Gesamtbedeutung" des Textes in diesen Token — wird für die finale Klassifikation verwendet.
+- `[SEP]` (Separator Token) = markiert das Ende eines Textes oder die Grenze zwischen zwei Texten.
+```
+Eingabe:  "hello world"
+Mit Tokens: [CLS] hello world [SEP]
+Als Zahlen: [101, 7592, 2088, 102]
+```
+Diese Sonderzeichen wurden beim Vortraining des Modells verwendet — deshalb muss man sie auch beim Fine-Tuning verwenden.
+
 ### Wichtige Regel
 
 ```python
@@ -188,8 +198,8 @@ Wort 8: "kaufte" → Gedächtnis: [subject=Mann → er kaufte]
 
 ### AWD = Verbesserungen gegen Overfitting
 
-- ASGD = besserer Optimizer für LSTMs
-- Weight-Dropped = zufällig Verbindungen abschalten während Training
+- **ASGD** (Averaged Stochastic Gradient Descent) = eine Variante von SGD die mehrere Zwischenschritte mittelt → stabiler, genauer als normales SGD
+- **Weight-Dropped** = während Training werden zufällig Verbindungen zwischen Neuronen auf 0 gesetzt → Modell kann sich nicht auf einzelne Verbindungen verlassen → lernt robustere Muster
 
 ---
 
@@ -255,8 +265,13 @@ DeBERTa: Inhalt            → separat
 ```python
 model_nm = 'microsoft/deberta-v3-small'
 model = AutoModelForSequenceClassification.from_pretrained(model_nm, num_labels=1)
-# num_labels=1 → Zahl ausgeben (0.0-1.0), kein Kategorien-Klassifikator
+# num_labels=1  → eine Zahl ausgeben (0.0 bis 1.0) = Regression
+# num_labels=2  → zwei Kategorien (z.B. positiv/negativ) = Klassifikation
+# num_labels=10 → zehn Kategorien (z.B. Ziffern 0-9)
 ```
+
+**Was ist `from_pretrained`?**
+Lädt ein bereits trainiertes Modell aus der Hugging Face Cloud herunter — mit allen Gewichten die es beim Vortraining gelernt hat. Ohne `from_pretrained` würde das Modell mit zufälligen Gewichten starten.
 
 ---
 
@@ -328,6 +343,11 @@ learn.fit_one_cycle(4, slice(1e-5, 1e-3))
 #                      ↑ frühe    ↑ späte Schichten
 ```
 
+**Was bedeutet `slice(1e-5, 1e-3)`?**
+- `1e-5` = 0.00001 (wissenschaftliche Notation: 1 × 10⁻⁵)
+- `1e-3` = 0.001   (1 × 10⁻³)
+- `slice(von, bis)` = fast.ai verteilt die Lernraten automatisch zwischen diesen zwei Werten über alle Schichten
+
 ```
 Schicht 1 (allgemein)  → 0.00001  (kaum ändern)
 Schicht 2              → 0.00003
@@ -344,6 +364,14 @@ per_device_train_batch_size=128
 ```
 
 128 Texte gleichzeitig durch das Modell — einen gemeinsamen Gradienten berechnen — Gewichte einmal updaten.
+
+**Was ist ein Gradient?**
+Der Gradient sagt dem Modell: "In welche Richtung müssen die Gewichte geändert werden, damit der Fehler kleiner wird?"
+```
+Fehler groß → Gradient groß → Gewichte stark anpassen
+Fehler klein → Gradient klein → Gewichte kaum anpassen
+```
+Stell dir vor du bist auf einem Hügel und willst ins Tal — der Gradient zeigt dir die steilste Richtung nach unten.
 
 | Batch Size | Effekt |
 |---|---|
@@ -362,6 +390,14 @@ Auf Mac ohne GPU: `per_device_train_batch_size=16`
 | Zweck | Modell trainieren | Ergebnis messen |
 | Muss differenzierbar sein | JA | Nein |
 | Beispiel | MSE, Cross Entropy | Pearson r, Accuracy |
+
+**Was bedeutet "differenzierbar"?**
+Differenzierbar = man kann einen Gradienten berechnen = Gradient Descent kann damit arbeiten.
+```
+MSE (x-y)²  → glatte Kurve → Gradient berechenbar → ✅ für Training
+Accuracy    → springt von 0 auf 1 → kein glatter Gradient → ❌ für Training
+```
+Nicht differenzierbare Metrics können trotzdem gut messen — nur nicht zum Trainieren verwendet werden.
 
 Training: Modell minimiert Loss. Evaluation: Wir messen Metric.
 
@@ -457,6 +493,9 @@ df['input'] = 'TEXT1: ' + df.context + '; TEXT2: ' + df.anchor + '; SIMILAR: ' +
 # 3. Dataset + Split
 ds = Dataset.from_pandas(df).rename_column('score', 'label')
 dds = ds.train_test_split(0.25, seed=42)
+# seed=42: Zufallszahl für die Aufteilung — gleiche Zahl = gleiche Aufteilung bei jedem Durchlauf
+# 42 ist eine Konvention unter Programmierern (aus "Per Anhalter durch die Galaxis")
+# Wichtig für Reproduzierbarkeit: andere sollen dein Experiment nachstellen können
 
 # 4. Tokenizer
 model_nm = 'microsoft/deberta-v3-small'
@@ -472,17 +511,17 @@ model = AutoModelForSequenceClassification.from_pretrained(model_nm, num_labels=
 
 # 6. Training
 args = TrainingArguments(
-    'outputs',
-    learning_rate=8e-5,
-    per_device_train_batch_size=128,
-    num_train_epochs=4,
-    evaluation_strategy='epoch'
+    'outputs',               # Ordner wo Checkpoints gespeichert werden
+    learning_rate=8e-5,      # 0.00008 — klein weil Modell schon vortrainiert
+    per_device_train_batch_size=128,  # 128 Texte gleichzeitig
+    num_train_epochs=4,      # 4x durch alle Daten
+    evaluation_strategy='epoch'  # nach jeder Epoche Validation messen
 )
 
 trainer = Trainer(
     model, args,
-    train_dataset=tok_ds['train'],
-    eval_dataset=tok_ds['test'],
+    train_dataset=tok_ds['train'],  # Daten zum Lernen
+    eval_dataset=tok_ds['test'],    # Daten zum Prüfen (werden nicht gelernt)
     tokenizer=tokz
 )
 trainer.train()
