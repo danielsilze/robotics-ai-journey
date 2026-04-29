@@ -85,6 +85,11 @@
 - [x] `notes/eigenes-modell-trainieren.md` — Schritt-für-Schritt Anleitung
 - [x] `LERNPLAN.md` — 9-Wochen Intensivplan bis 30. Juni 2026
 
+**CS50P:**
+- [x] Lektion 3 — Exceptions (try/except, raise, pass)
+- [x] Lektion 4 — Libraries (random, statistics, sys, eigene Module)
+- [ ] Bitcoin Price Index (bitcoin.py) — offen, Problem noch ungelöst
+
 **Sonstiges:**
 - [x] Google Kalender mit 9-Wochen Lernplan befüllt (.ics Import)
 - [x] Claude Desktop System-Prompt erstellt
