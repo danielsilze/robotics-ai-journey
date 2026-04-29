@@ -198,8 +198,46 @@ Wort 8: "kaufte" → Gedächtnis: [subject=Mann → er kaufte]
 
 ### AWD = Verbesserungen gegen Overfitting
 
-- **ASGD** (Averaged Stochastic Gradient Descent) = eine Variante von SGD die mehrere Zwischenschritte mittelt → stabiler, genauer als normales SGD
-- **Weight-Dropped** = während Training werden zufällig Verbindungen zwischen Neuronen auf 0 gesetzt → Modell kann sich nicht auf einzelne Verbindungen verlassen → lernt robustere Muster
+**ASGD — Averaged Stochastic Gradient Descent**
+
+Normales SGD macht nach jedem Batch einen Schritt und verwirft den alten Wert:
+```
+Schritt 1: Gewicht = 0.5
+Schritt 2: Gewicht = 0.48
+Schritt 3: Gewicht = 0.51  ← springt hin und her
+Schritt 4: Gewicht = 0.49
+```
+
+ASGD speichert alle Zwischenwerte und mittelt sie am Ende:
+```
+Durchschnitt: (0.5 + 0.48 + 0.51 + 0.49) / 4 = 0.495
+```
+Ergebnis: Gewichte landen genauer im Optimum statt ständig drum herumzuspringen.
+
+Analogie: Du schätzt die Temperatur draußen. Einmal messen = ungenau. 10x messen und mitteln = viel genauer.
+
+---
+
+**Weight-Dropped (Dropout)**
+
+Während jedem Trainingsschritt werden zufällig X% der Verbindungen zwischen Neuronen auf 0 gesetzt — also deaktiviert:
+
+```
+Ohne Dropout:
+  Neuron A → Neuron B → Neuron C → Ausgabe
+  Modell verlässt sich stark auf Neuron B
+
+Mit Dropout (z.B. 20%):
+  Schritt 1: Neuron A → [B deaktiviert] → Neuron C → Ausgabe
+  Schritt 2: [A deaktiviert] → Neuron B → Neuron C → Ausgabe
+  Schritt 3: Neuron A → Neuron B → [C deaktiviert] → Ausgabe
+```
+
+Jedes Mal andere Neuronen aktiv → Modell kann sich nicht auf einzelne verlassen → lernt robustere, verallgemeinerbare Muster.
+
+Beim echten Einsatz (Inference) sind alle Neuronen aktiv — dann nutzt das Modell sein volles Wissen.
+
+Analogie: Fußballtraining wo immer andere Spieler fehlen. Das Team lernt flexibel zu spielen statt auf einzelne Stars angewiesen zu sein.
 
 ---
 
