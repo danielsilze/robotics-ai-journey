@@ -20,11 +20,12 @@ target:  "visual screen"
 score:   0.75  → sehr ähnlich
 ```
 
-Trick: Beide Phrasen zu einem Text zusammenbauen:
+Trick: Alle drei Felder zu einem Text zusammenbauen:
 ```python
-df['input'] = 'TEXT1: ' + df.anchor + '; TEXT2: ' + df.target
+df['input'] = 'TEXT1: ' + df.context + '; TEXT2: ' + df.target + '; ANC1: ' + df.anchor
 ```
 Ähnlichkeitsproblem wird zu Klassifikationsproblem.
+context = Patent-Klasse (z.B. "A47"), target = zweite Phrase, anchor = erste Phrase.
 
 ---
 
@@ -51,12 +52,17 @@ Runde 2: nächstes Paar → "en"
 ...nach 30.000 Runden: optimales Wörterbuch
 ```
 
-Ergebnis:
+Ergebnis aus dem echten Notebook:
+```python
+tokz.tokenize("G'day folks, I'm Jeremy from fast.ai!")
+# ['▁G', "'", 'day', '▁folks', ',', '▁I', "'", 'm', '▁Jeremy', '▁from', '▁fast', '.', 'ai', '!']
+
+tokz.tokenize("A platypus is an ornithorhynchus anatinus.")
+# ['▁A', '▁platypus', '▁is', '▁an', '▁or', 'ni', 'tho', 'rhynch', 'us', '▁an', 'at', 'inus', '.']
 ```
-"tokenization"  →  ["token", "ization"]
-"unbekannteswort" →  ["un", "bek", "anntes", "wort"]
-"xqzpfw"        →  ["x","q","z","p","f","w"]  ← worst case
-```
+
+**▁ (Unterstrich)** = neues Wort beginnt hier (SentencePiece-Stil von DeBERTa)
+Seltene Wörter wie "ornithorhynchus" werden in viele Teile zerlegt.
 
 ### Numericalization
 
@@ -89,13 +95,31 @@ tokz = AutoTokenizer.from_pretrained('microsoft/deberta-v3-small')
 # FALSCH — eigener Tokenizer passt nicht zum vortrainierten Modell
 ```
 
-### In Code
+### In Code — aus dem echten Notebook
 
 ```python
-def tok_func(x):
-    return tokz(x['input'], truncation=True)
+# Tokenizer Funktion
+def tok_func(x): return tokz(x["input"])
 
+# Auf ganzes Dataset anwenden
 tok_ds = ds.map(tok_func, batched=True)
+
+# Ergebnis für erste Zeile:
+row = tok_ds[0]
+row['input'], row['input_ids']
+# ('TEXT1: A47; TEXT2: abatement of pollution; ANC1: abatement',
+#  [1, 54453, 435, 294, 336, 5753, 346, 54453, 445, ...])
+```
+
+Der Tokenizer erzeugt drei Felder automatisch:
+- `input_ids` — die Token-Nummern
+- `attention_mask` — welche Tokens beachten (1) / ignorieren (0)
+- `token_type_ids` — unterscheidet zwischen Satz A und Satz B
+
+Vocab nachschlagen:
+```python
+tokz.vocab['▁of']  # → 265
+# Token 265 erscheint genau dort wo "of" im Text steht
 ```
 
 ---
@@ -451,7 +475,22 @@ r = 0.0  → kein Zusammenhang
 r = -1.0 → perfekt umgekehrt
 ```
 
-Empfindlich auf Ausreißer — aber **nicht löschen**: Ausreißer enthalten oft wichtige Information.
+In Code — so wie es Jeremy im Notebook macht:
+```python
+import numpy as np
+
+def corr(x, y): return np.corrcoef(x, y)[0][1]
+def corr_d(eval_pred): return {'pearson': corr(*eval_pred)}
+# corr_d wird als compute_metrics an den Trainer übergeben
+```
+
+**Ausreißer und r** — aus dem Notebook erklärt:
+```
+Mit Ausreißern:    r = 0.15  (schlecht, obwohl Trend gut ist)
+Ohne Ausreißer:    r = 0.65  (zeigt echte Beziehung)
+```
+Ausreißer nicht einfach löschen — verstehen warum sie da sind.
+Im Notebook: Häuser über $500k wurden auf diesen Wert gekappt → Ausreißer durch Datenproblem, nicht Realität.
 
 ---
 
@@ -512,61 +551,95 @@ deberta-v3-large   # besser, langsamer
 
 ---
 
-## Kompletter Code
+## Kompletter Code — exakt aus dem Notebook
 
 ```python
+import os
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from datasets import Dataset
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
+from datasets import Dataset, DatasetDict
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, TrainingArguments, Trainer
+
+# Kaggle oder lokal?
+iskaggle = os.environ.get('KAGGLE_KERNEL_RUN_TYPE', '')
+if iskaggle:
+    path = Path('../input/us-patent-phrase-to-phrase-matching')
+else:
+    path = Path('us-patent-phrase-to-phrase-matching')
 
 # 1. Daten laden
-path = Path('../input/us-patent-phrase-to-phrase-matching')
 df = pd.read_csv(path/'train.csv')
 
-# 2. Texte zusammenbauen
-df['input'] = 'TEXT1: ' + df.context + '; TEXT2: ' + df.anchor + '; SIMILAR: ' + df.target
+# 2. Texte zusammenbauen — context + target + anchor
+df['input'] = 'TEXT1: ' + df.context + '; TEXT2: ' + df.target + '; ANC1: ' + df.anchor
 
-# 3. Dataset + Split
-ds = Dataset.from_pandas(df).rename_column('score', 'label')
-dds = ds.train_test_split(0.25, seed=42)
-# seed=42: Zufallszahl für die Aufteilung — gleiche Zahl = gleiche Aufteilung bei jedem Durchlauf
-# 42 ist eine Konvention unter Programmierern (aus "Per Anhalter durch die Galaxis")
-# Wichtig für Reproduzierbarkeit: andere sollen dein Experiment nachstellen können
-
-# 4. Tokenizer
+# 3. Dataset erstellen + tokenisieren
 model_nm = 'microsoft/deberta-v3-small'
 tokz = AutoTokenizer.from_pretrained(model_nm)
 
-def tok_func(x):
-    return tokz(x['input'], truncation=True)
+ds = Dataset.from_pandas(df)
+def tok_func(x): return tokz(x["input"])
+tok_ds = ds.map(tok_func, batched=True)
 
-tok_ds = dds.map(tok_func, batched=True)
+# 4. Labels umbenennen + Split
+tok_ds = tok_ds.rename_columns({'score': 'labels'})
+dds = tok_ds.train_test_split(0.25, seed=42)
+# seed=42: gleiche Aufteilung bei jedem Durchlauf (Reproduzierbarkeit)
+# → 27354 Train, 9119 Validation
 
-# 5. Modell laden
+# 5. Metric
+def corr(x, y): return np.corrcoef(x, y)[0][1]
+def corr_d(eval_pred): return {'pearson': corr(*eval_pred)}
+
+# 6. Modell laden
 model = AutoModelForSequenceClassification.from_pretrained(model_nm, num_labels=1)
 
-# 6. Training
+# 7. Training
+bs = 128
+epochs = 4
+lr = 8e-5
+
 args = TrainingArguments(
-    'outputs',               # Ordner wo Checkpoints gespeichert werden
-    learning_rate=8e-5,      # 0.00008 — klein weil Modell schon vortrainiert
-    per_device_train_batch_size=128,  # 128 Texte gleichzeitig
-    num_train_epochs=4,      # 4x durch alle Daten
-    evaluation_strategy='epoch'  # nach jeder Epoche Validation messen
+    'outputs',
+    learning_rate=lr,
+    warmup_ratio=0.1,              # erste 10% der Schritte: Lernrate langsam hochfahren
+    lr_scheduler_type='cosine',    # Lernrate nach Cosinus-Kurve absenken
+    fp16=True,                     # halbe Präzision → schneller auf GPU
+    evaluation_strategy="epoch",   # nach jeder Epoche messen
+    per_device_train_batch_size=bs,
+    per_device_eval_batch_size=bs*2,
+    num_train_epochs=epochs,
+    weight_decay=0.01,             # Gewichte leicht bestrafen → Overfitting reduzieren
+    report_to='none'
 )
 
-trainer = Trainer(
-    model, args,
-    train_dataset=tok_ds['train'],  # Daten zum Lernen
-    eval_dataset=tok_ds['test'],    # Daten zum Prüfen (werden nicht gelernt)
-    tokenizer=tokz
-)
+trainer = Trainer(model, args,
+    train_dataset=dds['train'],
+    eval_dataset=dds['test'],
+    tokenizer=tokz,
+    compute_metrics=corr_d)
+
 trainer.train()
 
-# 7. Vorhersagen + Post-Processing
-preds = trainer.predict(tok_ds['test']).predictions.astype(float)
-preds = np.clip(preds, 0, 1)
+# Echte Ergebnisse:
+# Epoche 1: Pearson = 0.800
+# Epoche 2: Pearson = 0.826
+# Epoche 3: Pearson = 0.834
+# Epoche 4: Pearson = 0.835
+
+# 8. Test-Set vorhersagen
+eval_df = pd.read_csv(path/'test.csv')
+eval_df['input'] = 'TEXT1: ' + eval_df.context + '; TEXT2: ' + eval_df.target + '; ANC1: ' + eval_df.anchor
+eval_ds = Dataset.from_pandas(eval_df).map(tok_func, batched=True)
+
+preds = trainer.predict(eval_ds).predictions.astype(float)
+preds = np.clip(preds, 0, 1)  # negative und >1 Werte korrigieren
+
+# 9. Submission für Kaggle
+import datasets
+submission = datasets.Dataset.from_dict({'id': eval_ds['id'], 'score': preds})
+submission.to_csv('submission.csv', index=False)
 ```
 
 ---
