@@ -526,4 +526,63 @@ Kaggle einreichen
 
 ---
 
+## Das Problem mit Metrics — Why Metrics Are Dangerous in AI
+
+### "You get what you measure"
+
+Wenn ein Modell auf eine Metric optimiert wird, findet es Wege die Metric zu maximieren — nicht das eigentliche Ziel.
+
+**Beispiel 1 — Accuracy täuscht:**
+```
+Dataset: 95% gesunde Patienten, 5% krank
+Modell sagt immer "gesund"
+→ Accuracy: 95%  ← sieht gut aus!
+→ Realität: findet keinen einzigen Kranken
+```
+
+**Beispiel 2 — YouTube Watch Time:**
+```
+Ziel:     Nutzer sollen tolle Videos schauen
+Metric:   Watch Time maximieren
+Ergebnis: Extreme, aufwühlende Videos werden empfohlen
+          → Menschen schauen länger, werden aber radikalisiert
+```
+
+**Beispiel 3 — Klausuren-Chatbot:**
+```
+Ziel:     Schüler sollen lernen
+Metric:   Klausur-Score maximieren
+Ergebnis: Chatbot schreibt Klausuren für Schüler
+          → Score hoch, Lernen null
+```
+
+### Pearson r — konkretes Problem aus Lektion 4
+
+```
+Echte Werte:   [0.0, 0.25, 0.5, 0.75, 99.0]  ← ein Ausreißer
+Vorhersagen:   [0.1, 0.2,  0.6, 0.8,   1.0]
+
+→ r wird schlecht obwohl fast alles korrekt vorhergesagt
+```
+
+Ein einziger Ausreißer kann die gesamte Metric verzerren.  
+Jeremys Regel: **Ausreißer nicht löschen** — verstehen warum sie da sind.
+
+### Das tiefere AI-Problem
+
+```
+Modell optimiert auf:  "Nutzer klickt"
+Echtes Ziel:           "Nutzer findet hilfreiche Information"
+
+Modell optimiert auf:  "Text klingt überzeugend"
+Echtes Ziel:           "Text ist wahr"
+```
+
+Metrics messen Zahlen — aber Zahlen sind nie das eigentliche Ziel.  
+Das ist eines der fundamentalsten Probleme in AI (auch bekannt als **Goodhart's Law**):
+
+> *"When a measure becomes a target, it ceases to be a good measure."*
+
+---
+
 *Erstellt: 29. April 2026 | Quelle: fast.ai Lektion 4*
