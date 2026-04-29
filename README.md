@@ -65,6 +65,32 @@
 - [x] Space 'minima' deployed mit Gradio (Cat or Dog App)
 - [x] model.pkl hochgeladen
 
+### Tag 3 — NLP & Lektion 4 (2026-04-29)
+
+**fast.ai Lektion 4 — NLP komplett erarbeitet:**
+- [x] Notebook "Getting started with NLP for absolute beginners" durchgearbeitet
+- [x] Tokenization & Numericalization verstanden (BPE, Subwords, ▁ Prefix)
+- [x] ULMFiT Konzept (3 Schritte: Pretraining → LM Finetuning → Classifier)
+- [x] AWD-LSTM erklärt (ASGD, Weight-Dropped/Dropout)
+- [x] Transformer & Attention erklärt (Multi-Head, DeBERTa)
+- [x] Transfer Learning, Zeiler & Fergus, Gradual Unfreezing
+- [x] Diskriminative Lernraten, Batch Size, Loss vs. Metric
+- [x] Pearson Correlation, Validation Set, Post-Processing
+- [x] Metrics Problem & Goodhart's Law
+- [x] Kompletter Notebook-Code mit allen Parametern (warmup, cosine, fp16)
+
+**Notizen auf GitHub veröffentlicht:**
+- [x] `notes/fastai-lektion4-nlp.md` — vollständige Lektion 4 Erklärung
+- [x] `notes/fastai-lektion4-keypoints.md` — Key Points Cheatsheet
+- [x] `notes/eigenes-modell-trainieren.md` — Schritt-für-Schritt Anleitung
+- [x] `LERNPLAN.md` — 9-Wochen Intensivplan bis 30. Juni 2026
+
+**Sonstiges:**
+- [x] Google Kalender mit 9-Wochen Lernplan befüllt (.ics Import)
+- [x] Claude Desktop System-Prompt erstellt
+- [x] Token-Kosten Zusammenhang verstanden
+- [x] Training-Loop technisch verstanden (forward pass, backward pass, optimizer.step)
+
 ---
 
-*Gestartet: April 2026 — Ziel: September 2026*
+*Gestartet: April 2026 — Ziel: Juni 2026*
