@@ -98,4 +98,27 @@
 
 ---
 
+### Tag 8 — Business, Verhandlung & AI Learning (2026-05-04)
+
+**Dirk Reuter Live-Workshop — Verhandlungsprinzipien der Weltelite:**
+- [x] Höhere Preise konsequent durchsetzen (Wert klar kommunizieren → Kunde sagt zu)
+- [x] A-Kunden gewinnen (schnelle Entscheider, effizient, profitabel)
+- [x] Team aufbauen — richtige Mitarbeiter, langfristig halten, Umsatz steigern
+- [x] Systeme umsetzen — immer aus besserer Verhandlungsposition starten
+- [x] Dirk Reuter Retargeting-Strategie
+- [x] Mitarbeiter unabhängig machen
+- [x] Nachfassen bei Gesprächen
+- [x] 80% Abschlussrate beim Verkauf — Ziel & Methodik
+
+**Key Insight:**
+- [x] **Erst Kundenstamm anfragen, dann erst Marketing-Ausgaben tätigen**
+
+**Claude / Anthropic:**
+- [x] Claude Anthropic Academy — Claude Code 101
+- [x] AI Fluency: Framework & Foundations
+
+**Produkttest** durchgeführt
+
+---
+
 *Gestartet: April 2026 — Ziel: Juni 2026*
